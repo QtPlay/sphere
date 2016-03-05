@@ -1,11 +1,12 @@
 /* global SQL */
 
 /// QML .import QtQuick.LocalStorage 2.0 as SQL
+import DateUtils from './dateutils'
 
 const types = {
     'string': 'TEXT',
     'number': 'FLOAT',
-    'int': 'INT',
+    'int': 'INTEGER',
     'integer': 'INTEGER',
     'bool': 'BOOLEAN',
     'boolean': 'BOOLEAN',
@@ -14,12 +15,12 @@ const types = {
 
 export function field(type, opts) {
     return function(target, key, descriptor) {
-        if (!target.schema)
-            target.schema = {}
+        if (!target.constructor.schema)
+            target.constructor.schema = {}
         if (!opts)
             opts = {}
         opts['type'] = type
-        target.schema[key] = opts
+        target.constructor.schema[key] = opts
         descriptor.writable = true
         return descriptor
     }
@@ -30,6 +31,8 @@ function sqlType(opts) {
 
     if (opts.unique)
         sql += ' UNIQUE'
+    if (opts.primaryKey)
+        sql += ' PRIMARY KEY'
 
     return sql
 }
@@ -74,7 +77,7 @@ export class Database {
     }
 
     executeSql(sql, args) {
-        console.log(`Executing ${sql}`)
+        console.log(`Executing ${sql} [${args.map(arg => JSON.stringify(arg)).join(', ')}]`)
         if (!args)
             args = []
 
@@ -100,13 +103,51 @@ export class Document {
     static db
     static schema
 
-    @field('int', {unique: true}) id
+    @field('int', {primaryKey: true}) id
+
+    save() {
+        let keys = Object.keys(this.constructor.schema)
+
+        if (!this.id)
+            keys = keys.filter(key => key != 'id')
+
+        const args = keys.map(key => {
+            const opts = this.constructor.schema[key]
+            const type = opts.type
+            let value =  this[key]
+
+            if (value == null || value == undefined) {
+                value = null
+            } else if (type == 'date') {
+                value = value ? DateUtils.isValid(value) ? value.toISOString() : ''
+                              : undefined
+            } else if (typeof(value) == 'object' || type == 'json') {
+                value = JSON.stringify(value)
+            }
+
+            return value
+        })
+
+        const placeholders = args.map(() => '?')
+
+        const results = this.executeSql(`INSERT OR REPLACE INTO ${this.constructor.className}(${keys.join(', ')}) VALUES (${placeholders.join(', ')})`, args)
+        console.log(results.rows.length)
+    }
+
+    delete() {
+        this.executeSql(`DELETE FROM ${this.constructor.className} WHERE id = ?`, [this.id])
+        objectDeleted.emit(this.constructor.className, this)
+    }
+
+    executeSql(sql, args) {
+        return this.constructor.db.executeSql(sql, args)
+    }
 
     static loadRow(row) {
-        let object = new this.prototype.constructor()
+        let object = new this()
 
         for (const key in row) {
-            const type = this.prototype.schema[key]
+            const type = this.schema[key]
             let value = row[key]
 
             if (value == null)
@@ -171,8 +212,8 @@ export class Document {
     }
 
     static createTable() {
-        const args = Object.keys(this.prototype.schema).map(key => {
-            return `${key} ${sqlType(this.prototype.schema[key])}`
+        const args = Object.keys(this.schema).map(key => {
+            return `${key} ${sqlType(this.schema[key])}`
         })
 
         const sql = `CREATE TABLE ${this.className} (${args.join(', ')})`

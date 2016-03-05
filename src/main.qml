@@ -23,6 +23,24 @@ Item {
 
     Component.onCompleted: {
         var documents = App.SampleDocument.find()
-        console.log(documents[0].id, documents[0].title, documents[0].body)
+        documents.forEach(function(document) {
+            console.log(document.id, document.title, document.body)
+        })
+
+        var document = documents[0]
+        document.title = 'Goodbye'
+        document.save()
+
+        var documents = App.SampleDocument.find()
+        documents.forEach(function(document) {
+            console.log(document.id, document.title, document.body)
+        })
+
+        document.delete()
+
+        var documents = App.SampleDocument.find()
+        documents.forEach(function(document) {
+            console.log(document.id, document.title, document.body)
+        })
     }
 }

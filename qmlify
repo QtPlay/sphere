@@ -30,6 +30,7 @@ for jsfile in sys.argv[1:]:
 
     text = text.replace(define, '')
     text = re.sub(require, '', text)
+    text = re.sub(r'\n(exports.\w+\s*=\s*)+ undefined;\n', '\n', text)
     text = re.sub(r'exports.\w+ = \w+;\n', '', text)
     text = re.sub(export, r'var \1 =', text)
 
