@@ -37,70 +37,66 @@ function sqlType(opts) {
     return sql
 }
 
-export class Database {
-    constructor(name, description) {
-        this.db = SQL.LocalStorage.openDatabaseSync(name, '', description, 100000)
-    }
+let db = null
+let global_tx = null
 
-    migrate(version, callback) {
-        if (this.db.version !== version) {
-            console.log(`${this.db.version} -> ${version}`)
-            this.db.changeVersion(this.db.version, version, (tx) => {
-                this._withTransaction(tx, callback)
-            })
-        }
+export function connect(name, description) {
+    db = SQL.LocalStorage.openDatabaseSync(name, '', description, 100000)
+}
 
-        return this
-    }
-
-    _withTransaction(tx, callback) {
-        const oldTx = this.tx
-        this.tx = tx
-
-        try {
-            callback(tx)
-        } finally {
-            this.tx = oldTx
-        }
-    }
-
-    transaction(callback) {
-        this.db.transaction((tx) => {
+export function migrate(version, callback) {
+    if (db.version !== version) {
+        console.log(`${db.version} -> ${version}`)
+        db.changeVersion(db.version, version, (tx) => {
             this._withTransaction(tx, callback)
         })
     }
 
-    readTransaction(callback) {
-        this.db.readTransaction((tx) => {
-            this._withTransaction(tx, callback)
+    return {
+        migrate: migrate
+    }
+}
+
+function _withTransaction(tx, callback) {
+    const oldTx = global_tx
+    global_tx = tx
+
+    try {
+        callback(tx)
+    } finally {
+        global_tx = oldTx
+    }
+}
+
+export function transaction(callback) {
+    db.transaction((tx) => {
+        _withTransaction(tx, callback)
+    })
+}
+
+export function readTransaction(callback) {
+    db.readTransaction((tx) => {
+        this._withTransaction(tx, callback)
+    })
+}
+
+export function executeSql(sql, args) {
+    console.log(`Executing ${sql} [${args.map(arg => JSON.stringify(arg)).join(', ')}]`)
+    if (!args)
+        args = []
+
+    if (global_tx) {
+        return global_tx.executeSql(sql, args)
+    } else {
+        let result = null
+        db.transaction((tx) => {
+            result = tx.executeSql(sql, args)
         })
-    }
-
-    executeSql(sql, args) {
-        console.log(`Executing ${sql} [${args.map(arg => JSON.stringify(arg)).join(', ')}]`)
-        if (!args)
-            args = []
-
-        if (this.tx) {
-            return this.tx.executeSql(sql, args)
-        } else {
-            let result = null
-            this.db.transaction((tx) => {
-                result = tx.executeSql(sql, args)
-            })
-            return result
-        }
-    }
-
-    get Document() {
-        return class BaseDocument extends Document {
-            static db = this
-        }
+        return result
     }
 }
 
 export class Document {
-    static db
     static schema
 
     @field('int', {primaryKey: true}) id
@@ -130,17 +126,12 @@ export class Document {
 
         const placeholders = args.map(() => '?')
 
-        const results = this.executeSql(`INSERT OR REPLACE INTO ${this.constructor.className}(${keys.join(', ')}) VALUES (${placeholders.join(', ')})`, args)
-        console.log(results.rows.length)
+        executeSql(`INSERT OR REPLACE INTO ${this.constructor.className}(${keys.join(', ')}) VALUES (${placeholders.join(', ')})`, args)
     }
 
     delete() {
-        this.executeSql(`DELETE FROM ${this.constructor.className} WHERE id = ?`, [this.id])
+        executeSql(`DELETE FROM ${this.constructor.className} WHERE id = ?`, [this.id])
         objectDeleted.emit(this.constructor.className, this)
-    }
-
-    executeSql(sql, args) {
-        return this.constructor.db.executeSql(sql, args)
     }
 
     static loadRow(row) {
@@ -175,7 +166,7 @@ export class Document {
         if (!args)
             args = []
 
-        this.db.readTransaction((tx) => {
+        readTransaction((tx) => {
             let sql = `SELECT * FROM ${this.className}`
 
             if (query)
@@ -218,7 +209,7 @@ export class Document {
 
         const sql = `CREATE TABLE ${this.className} (${args.join(', ')})`
 
-        this.db.executeSql(sql, [])
+        executeSql(sql, [])
     }
 }
 

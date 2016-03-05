@@ -1,8 +1,8 @@
-import {field, Database} from './sphere'
+import {field, connect, migrate, Document} from './sphere'
 
-const db = new Database('qml-es6', 'Sample ES6 integration for QML')
+connect('qml-es6', 'Sample ES6 integration for QML')
 
-export class SampleDocument extends db.Document {
+export class SampleDocument extends Document {
     @field('string') title
     @field('string') body
 
@@ -13,7 +13,7 @@ export class SampleDocument extends db.Document {
     }
 }
 
-db.migrate('1', () => {
+migrate('1', () => {
     SampleDocument.createTable()
 })
 
