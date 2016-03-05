@@ -13,6 +13,8 @@ const types = {
     'date': 'DATE'
 }
 
+const documentClasses = {}
+
 export function field(type, opts) {
     return function(target, key, descriptor) {
         if (!target.constructor.schema)
@@ -42,6 +44,13 @@ let global_tx = null
 
 export function connect(name, description) {
     db = SQL.LocalStorage.openDatabaseSync(name, '', description, 100000)
+}
+
+export function register(...classes) {
+    classes.forEach((classObj) => {
+        documentClasses[classObj.name] = classObj
+        classObj.createTable()
+    })
 }
 
 export function migrate(version, callback) {
@@ -127,6 +136,7 @@ export class Document {
         const placeholders = args.map(() => '?')
 
         executeSql(`INSERT OR REPLACE INTO ${this.constructor.className}(${keys.join(', ')}) VALUES (${placeholders.join(', ')})`, args)
+        objectChanged.emit(this.constructor.className, this)
     }
 
     delete() {
@@ -207,7 +217,7 @@ export class Document {
             return `${key} ${sqlType(this.schema[key])}`
         })
 
-        const sql = `CREATE TABLE ${this.className} (${args.join(', ')})`
+        const sql = `CREATE TABLE IF NOT EXISTS ${this.className} (${args.join(', ')})`
 
         executeSql(sql, [])
     }

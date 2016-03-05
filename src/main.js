@@ -1,4 +1,4 @@
-import {field, connect, migrate, Document} from './sphere'
+import {field, connect, register, Document} from './sphere'
 
 connect('qml-es6', 'Sample ES6 integration for QML')
 
@@ -13,9 +13,7 @@ export class SampleDocument extends Document {
     }
 }
 
-migrate('1', () => {
-    SampleDocument.createTable()
-})
+register(SampleDocument)
 
 new SampleDocument('Hello', 'World').save()
 new SampleDocument('Booo', 'Hooo').save()
