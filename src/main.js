@@ -16,6 +16,8 @@ export class SampleDocument extends Document {
 register(SampleDocument)
 
 new SampleDocument('Hello', 'World').save()
-new SampleDocument('Booo', 'Hooo').save()
+const doc = new SampleDocument('Booo', 'Hooo')
+doc.save()
+console.log(doc.id)
 
 SampleDocument.find('title = ?', ['Hello'])

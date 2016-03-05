@@ -90,9 +90,9 @@ export function readTransaction(callback) {
 }
 
 export function executeSql(sql, args) {
-    console.log(`Executing ${sql} [${args.map(arg => JSON.stringify(arg)).join(', ')}]`)
     if (!args)
         args = []
+    console.log(`Executing ${sql} [${args.map(arg => JSON.stringify(arg)).join(', ')}]`)
 
     if (global_tx) {
         return global_tx.executeSql(sql, args)
@@ -136,6 +136,8 @@ export class Document {
         const placeholders = args.map(() => '?')
 
         executeSql(`INSERT OR REPLACE INTO ${this.constructor.className}(${keys.join(', ')}) VALUES (${placeholders.join(', ')})`, args)
+        const row = executeSql('SELECT last_insert_rowid() as id').rows.item(0)
+        this.id = row['id']
         objectChanged.emit(this.constructor.className, this)
     }
 
@@ -194,6 +196,10 @@ export class Document {
         })
 
         return results
+    }
+
+    static get(id) {
+        return this.findOne('id = ?', [id])
     }
 
     static findOne(query, args) {

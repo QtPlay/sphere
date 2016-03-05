@@ -2,7 +2,7 @@ SRC = $(wildcard src/*.js src/*.qml)
 OUT = $(SRC:src/%.js=build/%.js) $(SRC:src/%.qml=build/%.qml)
 
 run: build
-	qmlscene build/main.qml
+	qmlscene build/main.qml -I /usr/local/lib/qml
 build: $(OUT)
 build/%.qml: src/%.qml
 	cp $< $@
