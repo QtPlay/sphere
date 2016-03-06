@@ -9,7 +9,7 @@
   "scripts": {
     "setup": "mkdir -p build",
     "clean": "rm -rf build",
-    "build": "browserify src/sphere.js -t babelify -o build/sphere.js"
+    "build": "./qmlify src/sphere.js build/sphere.js"
   },
   "author": "Michael Spencer",
   "license": "MPL",

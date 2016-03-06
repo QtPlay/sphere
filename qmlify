@@ -1,40 +1,78 @@
 #! /usr/bin/env python3
-import sys, re, os
+import re
+import os.path
+import sys
+import subprocess
 
-define = '''
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-'''
-require = r'\nvar (\w+) = require\(\'(.+)\'\);\n'
-export = r'var (\w+) = exports.\1 ='
+qml_imports = []
+base_dir = os.path.abspath(os.path.dirname(__file__))
+temp_dir = os.path.abspath(os.path.join(base_dir, 'temp'))
+checked_files = []
 
-for jsfile in sys.argv[1:]:
-    with open(jsfile) as file:
-        text = file.read()
+def find_imports(text):
+    imports = []
+
+    for type, variables, module in re.findall(r'(import|export) \{(.+)\} from \'(.+)\'', text):
+        variables = variables.split(r'\s*,\s*')
+        imports.append((type, 'specific', variables, module))
+    for type, name, module in re.findall(r'(import|export) (\w+) from \'(.+)\'', text):
+        imports.append((type, 'named', name, module))
+    for type, module in re.findall(r'(import|export) \'(.+)\'', text):
+        imports.append((type, 'affects', None, module))
+
+    return imports
+
+def pre_qmlify(filename):
+    if filename in checked_files:
+        return
+    else:
+        checked_files.append(filename)
+
+    dirname = os.path.dirname(filename)
+    basename = os.path.basename(filename)
+    out_filename = os.path.join(temp_dir, basename)
+
+    with open(filename) as f:
+        text = f.read()
+
+    imports = find_imports(text)
+
+    for type, format, values, path in imports:
+        if path.startswith('./'):
+            pre_qmlify(os.path.abspath(os.path.join(dirname, path + '.js')))
+        if type == 'import' and re.fullmatch(r'.*\s+\d.\d', path):
+            qml_imports.append((format, values, path))
+            text = re.sub(r'import .* \'{}\'\n'.format(path), '', text)
+
+    with open(out_filename, 'w') as f:
+        f.write(text)
+
+
+def post_qmlify(filename):
+    with open(filename) as f:
+        text = f.read()
 
     header = '.pragma library\n'
 
-    for qml in re.findall(r'/// QML (.+)\n', text):
-        header += qml + '\n'
+    # For any QML imports,
+    for format, values, path in qml_imports:
+        if format == 'named':
+            header += '.import {path} as {values}\n'.format(path=path, values=values)
+        else:
+            raise Exception('Unable to handle import format: ' + format)
 
-    for (name, filename) in re.findall(require, text):
-    	header += '.import "{}.js" as QML{}\n'.format(filename, name)
+    text = header + '\n' + text
 
-    header += '\n'
+    with open(filename, 'w') as f:
+        f.write(text)
 
-    for (name, filename) in re.findall(require, text):
-    	header += 'var {} = QML{}\n'.format(name, name)
+src_filename = os.path.abspath(sys.argv[1])
+dest_filename = os.path.abspath(sys.argv[2])
+src_basename = os.path.basename(src_filename)
+temp_filename = os.path.join(temp_dir, src_basename)
 
-    header += '\n'
-
-    text = text.replace(define, '')
-    text = re.sub(require, '', text)
-    text = re.sub(r'\n(exports.\w+\s*=\s*)+ undefined;\n', '\n', text)
-    text = re.sub(r'exports.\w+ = \w+;\n', '', text)
-    text = re.sub(export, r'var \1 =', text)
-
-    text = header + text
-
-    with open(jsfile, 'w') as file:
-        file.write(text)
+pre_qmlify(src_filename)
+subprocess.run('browserify {temp} -t babelify -o {dest}'.format(temp=temp_filename, dest=dest_filename),
+               shell=True, check=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+               stdin=subprocess.PIPE)
+post_qmlify(dest_filename)
