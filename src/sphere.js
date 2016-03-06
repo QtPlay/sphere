@@ -14,6 +14,11 @@ const types = {
 }
 
 const documentClasses = {}
+let debug = false
+
+export function debugMode() {
+    debug = true
+}
 
 export function field(type, opts) {
     return function(target, key, descriptor) {
@@ -53,9 +58,14 @@ export function register(...classes) {
     })
 }
 
+export function getDocumentClass(className) {
+    return documentClasses[className]
+}
+
 export function migrate(version, callback) {
     if (db.version !== version) {
-        console.log(`${db.version} -> ${version}`)
+        if (debug)
+            console.log(`Migrating from '${db.version}' to '${version}'`)
         db.changeVersion(db.version, version, (tx) => {
             this._withTransaction(tx, callback)
         })
@@ -92,7 +102,8 @@ export function readTransaction(callback) {
 export function executeSql(sql, args) {
     if (!args)
         args = []
-    console.log(`Executing ${sql} [${args.map(arg => JSON.stringify(arg)).join(', ')}]`)
+    if (debug)
+        console.log(`Executing ${sql} [${args.map(arg => JSON.stringify(arg)).join(', ')}]`)
 
     if (global_tx) {
         return global_tx.executeSql(sql, args)
@@ -103,6 +114,51 @@ export function executeSql(sql, args) {
         })
         return result
     }
+}
+
+export function compare(a, b, sortBy) {
+    const sortKeys = Array.isArray(sortBy) ? sortBy : sortBy.split(',')
+
+    for (let i = 0; i < sortKeys.length; i++) {
+        let key = sortKeys[i]
+        let ascending = true
+
+        if (key.indexOf('+') == 0) {
+            ascending = true
+            key = key.slice(1)
+        } else if (key.indexOf('-') == 0) {
+            ascending = false
+            key = key.slice(1)
+        }
+
+        const value1 = a.valueForKey(key)
+        const value2 = b.valueForKey(key)
+        let type = typeof(value1)
+
+        if (!isNaN(value1) && !isNaN(value2))
+            type = 'number'
+        if (value1 instanceof Date)
+            type = 'date'
+
+        let sort = 0
+
+        if (type == 'boolean') {
+            sort = Number(value2) - Number(value1)
+        } else if (type == 'string') {
+            sort = value2.localeCompare(value1)
+        } else if (type == 'date') {
+            sort = value2 - value1
+        } else {
+            sort = Number(value2) - Number(value1)
+        }
+
+        sort = sort * (ascending ? 1 : -1)
+
+        if (sort != 0)
+            return sort
+    }
+
+    return 0
 }
 
 export class Document {
@@ -146,6 +202,26 @@ export class Document {
         objectDeleted.emit(this.constructor.className, this)
     }
 
+    valueForKey(key) {
+        if (key.indexOf('.') === -1) {
+            return this[key]
+        } else {
+            const keys = key.split('.')
+
+            let obj = this
+
+            for (let i = 0; i < keys.length; i++) {
+                const subkey = keys
+
+                obj = obj[subkey]
+                if (obj === undefined)
+                    return obj
+            }
+
+            return obj
+        }
+    }
+
     static loadRow(row) {
         let object = new this()
 
@@ -184,11 +260,10 @@ export class Document {
             if (query)
                 sql = `${sql} WHERE ${query}`
 
-            console.log(`Executing SQL ${sql}`)
+            if (debug)
+                console.log(`Executing SQL ${sql} [${args.join(', ')}]`)
 
             const rows = tx.executeSql(sql, args).rows
-
-            console.log(`${rows.length} rows returned`)
 
             for(let i = 0; i < rows.length; i++) {
                 results.push(this.loadRow(rows.item(i)))

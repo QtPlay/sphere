@@ -1,46 +1,38 @@
 import QtQuick 2.5
+import Material 0.1
+import Material.ListItems 0.1 as ListItem
 import "main.js" as App
 
 Item {
-    // property string searchText
-    //
-    // ListView {
-    //     model: query
-    // }
-    //
-    // Query {
-    //     id: query
-    //     where: searchText ? ['title = ?', searchText] : []
-    //     sortBy: 'title'
-    // }
-    //
-    // function addDocument(title, body) {
-    //     var document = new Model.SampleDocument()
-    //     document.title = title
-    //     document.body = body
-    //     document.save()
-    // }
+    width: 300
+    height: 400
 
-    Component.onCompleted: {
-        var documents = App.SampleDocument.find()
-        documents.forEach(function(document) {
-            console.log(document.id, document.title, document.body)
-        })
+    ListView {
+        anchors.fill: parent
+        model: query
+        delegate: ListItem.Subtitled {
+            text: modelData.title
+            subText: modelData.body
+        }
+    }
 
-        var document = documents[0]
-        document.title = 'Goodbye'
-        document.save()
+    TextField {
+        id: textField
 
-        var documents = App.SampleDocument.find()
-        documents.forEach(function(document) {
-            console.log(document.id, document.title, document.body)
-        })
+        placeholderText: "Search..."
 
-        document.delete()
+        anchors {
+            bottom: parent.bottom
+            left: parent.left
+            right: parent.right
+            margins: Units.dp(8)
+        }
+    }
 
-        var documents = App.SampleDocument.find()
-        documents.forEach(function(document) {
-            console.log(document.id, document.title, document.body)
-        })
+    Query {
+        id: query
+        className: 'SampleDocument'
+        where: textField.text ? ['title LIKE ?', '%' + textField.text + '%'] : undefined
+        sortBy: 'title'
     }
 }
