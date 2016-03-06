@@ -13,8 +13,10 @@ const types = {
     'date': 'DATE'
 }
 
-const documentClasses = {}
+export const documentClasses = {}
 let debug = false
+let database = null
+let global_tx = null
 
 export function debugMode() {
     debug = true
@@ -44,17 +46,24 @@ function sqlType(opts) {
     return sql
 }
 
-let db = null
-let global_tx = null
-
 export function connect(name, description) {
-    db = SQL.LocalStorage.openDatabaseSync(name, '', description, 100000)
+    if (debug)
+        console.log(`Connecting to ${name} (${description})`)
+
+    database = SQL.LocalStorage.openDatabaseSync(name, '', description, 100000)
+    for (const className in documentClasses) {
+        const classObj = documentClasses[className]
+        classObj.createTable()
+    }
 }
 
 export function register(...classes) {
     classes.forEach((classObj) => {
-        documentClasses[classObj.name] = classObj
-        classObj.createTable()
+        documentClasses[classObj.className] = classObj
+        if (debug)
+            console.log(`Registering ${classObj.className}`)
+        if (database)
+            classObj.createTable()
     })
 }
 
@@ -63,10 +72,10 @@ export function getDocumentClass(className) {
 }
 
 export function migrate(version, callback) {
-    if (db.version !== version) {
+    if (database.version !== version) {
         if (debug)
-            console.log(`Migrating from '${db.version}' to '${version}'`)
-        db.changeVersion(db.version, version, (tx) => {
+            console.log(`Migrating from '${database.version}' to '${version}'`)
+        database.changeVersion(database.version, version, (tx) => {
             this._withTransaction(tx, callback)
         })
     }
@@ -88,13 +97,13 @@ function _withTransaction(tx, callback) {
 }
 
 export function transaction(callback) {
-    db.transaction((tx) => {
+    database.transaction((tx) => {
         _withTransaction(tx, callback)
     })
 }
 
 export function readTransaction(callback) {
-    db.readTransaction((tx) => {
+    database.readTransaction((tx) => {
         this._withTransaction(tx, callback)
     })
 }
@@ -109,7 +118,7 @@ export function executeSql(sql, args) {
         return global_tx.executeSql(sql, args)
     } else {
         let result = null
-        db.transaction((tx) => {
+        database.transaction((tx) => {
             result = tx.executeSql(sql, args)
         })
         return result
@@ -290,7 +299,7 @@ export class Document {
     }
 
     static get className() {
-        return this.prototype.constructor.name
+        return this.name
     }
 
     static createTable() {
@@ -299,7 +308,6 @@ export class Document {
         })
 
         const sql = `CREATE TABLE IF NOT EXISTS ${this.className} (${args.join(', ')})`
-
         executeSql(sql, [])
     }
 }
@@ -320,3 +328,55 @@ class Signal {
 
 export const objectChanged = new Signal()
 export const objectDeleted = new Signal()
+
+// Legacy JS support
+
+export function makeField(type, opts) {
+    if (!opts)
+        opts = {}
+    opts.type = type
+    opts.__field = true
+    return opts
+}
+
+export function stringField(opts) {
+    return makeField('string', opts)
+}
+
+export function numberField(opts) {
+    return makeField('number', opts)
+}
+
+export function booleanField(opts) {
+    return makeField('boolean', opts)
+}
+
+export function dateField(opts) {
+    return makeField('date', opts)
+}
+
+export function define(className, members) {
+    class DocumentSubclass extends Document {
+
+    }
+
+    Object.defineProperty(DocumentSubclass, 'className', {value: className})
+
+    for (const key in members) {
+        const member = members[key]
+
+        if (typeof(member) == 'object' && member.__field) {
+            const descriptor = {}
+            field(member.type, member)(DocumentSubclass.prototype, key, descriptor)
+            Object.defineProperty(DocumentSubclass.prototype, key, descriptor)
+        } else {
+            Object.defineProperty(DocumentSubclass.prototype, key, {
+                value: member
+            })
+        }
+    }
+
+    register(DocumentSubclass)
+
+    return DocumentSubclass
+}
