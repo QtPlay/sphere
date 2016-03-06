@@ -1,5 +1,5 @@
 import QtQuick 2.0
-import "sphere.js" as Sphere
+import Sphere 0.1
 
 ListModel {
     id: query

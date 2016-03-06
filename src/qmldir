@@ -1,0 +1,4 @@
+module Sphere
+
+Query 0.1 Query.qml
+Sphere 0.1 sphere.js

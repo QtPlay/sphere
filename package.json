@@ -1,0 +1,30 @@
+{
+  "name": "sphere",
+  "version": "1.0.0",
+  "description": "A ORM for SQLite and QML",
+  "main": "src/sphere.js",
+  "directories": {
+    "test": "test"
+  },
+  "scripts": {
+    "setup": "mkdir -p build",
+    "clean": "rm -rf build",
+    "build": "browserify src/sphere.js -t babelify -o build/sphere.js"
+  },
+  "author": "Michael Spencer",
+  "license": "MPL",
+  "devDependencies": {
+    "babel-eslint": "^5.0.0",
+    "babel-plugin-transform-class-properties": "^6.5.2",
+    "babel-plugin-transform-decorators-legacy": "^1.3.4",
+    "babel-preset-es2015": "^6.5.0",
+    "babelify": "^7.2.0",
+    "browserify": "^13.0.0",
+    "eslint": "^2.3.0",
+    "eslint-plugin-class-property": "0.0.2"
+  },
+  "dependencies": {
+    "babel-polyfill": "^6.5.0",
+    "lodash": "^4.5.0"
+  }
+}
