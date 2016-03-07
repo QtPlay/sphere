@@ -1,9 +1,9 @@
 import SQL from 'QtQuick.LocalStorage 2.0'
-import {documentClasses} from './document'
 
 let debug = false
 let database = null
 let current_tx = null
+const documentClasses = {}
 
 export function debugMode() {
     debug = true

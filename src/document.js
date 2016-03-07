@@ -1,8 +1,6 @@
-import {database, executeSql, isDebugging, readTransaction} from './database'
+import {database, documentClasses, executeSql, isDebugging, readTransaction} from './database'
 import {objectChanged, objectDeleted} from './signals'
 import {sqlToJS, sqlType} from './mapping'
-
-const documentClasses = {}
 
 export function field(type, opts) {
     return function(target, key, descriptor) {
