@@ -43,7 +43,7 @@ export function executeSql(sql, args) {
     if (!args)
         args = []
     if (debug)
-        console.log(`Executing ${sql} [${args.map(arg => JSON.stringify(arg)).join(', ')}]`)
+        console.log(`Executing ${sql} ${JSON.stringify(args)}`)
 
     if (current_tx) {
         return current_tx.executeSql(sql, args)

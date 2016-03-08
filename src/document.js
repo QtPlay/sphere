@@ -97,6 +97,27 @@ export class Document {
         return document
     }
 
+    static count(query, args) {
+        let count = 0
+
+        if (!args)
+            args = []
+
+        readTransaction((tx) => {
+            let sql = `SELECT COUNT(*) as count FROM ${this.className}`
+
+            if (query)
+                sql = `${sql} WHERE ${query}`
+
+            if (isDebugging())
+                console.log(`Executing SQL ${sql} ${JSON.stringify(args)}`)
+
+            count = tx.executeSql(sql, args).rows.item(0)['count']
+        })
+
+        return count
+    }
+
     static find(query, args) {
         const results = []
 
@@ -110,7 +131,7 @@ export class Document {
                 sql = `${sql} WHERE ${query}`
 
             if (isDebugging())
-                console.log(`Executing SQL ${sql} [${args.join(', ')}]`)
+                console.log(`Executing SQL ${sql} ${JSON.stringify(args)}`)
 
             const rows = tx.executeSql(sql, args).rows
 

@@ -1,6 +1,6 @@
 INSTALL_DIR = $(shell qmake -query QT_INSTALL_QML)/Sphere
 
-.PHONY: build tests examples run_es5 run_es6
+.PHONY: build install check example
 
 build:
 	qmlify src build

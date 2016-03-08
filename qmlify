@@ -8,9 +8,11 @@ export_import = r'Object.defineProperty\(exports, \'(\w+)\', \{\n\s*enumerable: 
 require = r'\nvar (\w+) = require\(\'(.+)\'\);\n'
 export = r'var (\w+) = exports.\1 ='
 
-def qmlify(filename, build_dir):
+def qmlify(filename, base_dir, build_dir):
     basename = os.path.basename(filename)
-    out_filename = os.path.join(build_dir, basename)
+    rel_filename = os.path.relpath(filename, base_dir)
+    out_filename = os.path.join(build_dir, rel_filename)
+    out_dirname = os.path.dirname(out_filename)
 
     if os.path.exists(out_filename) and (os.path.getmtime(out_filename) >= os.path.getmtime(filename) and
                                          os.path.getmtime(out_filename) >= os.path.getmtime(__file__)):
@@ -18,12 +20,14 @@ def qmlify(filename, build_dir):
 
     print(' - ' + filename)
 
+    if not os.path.exists(out_dirname):
+        os.makedirs(out_dirname)
+
     if not filename.endswith('.js'):
-        copy(filename, build_dir)
+        copy(filename, out_filename)
         return
 
-    subprocess.run(['babel', filename, '-o', out_filename], check=True, stdout=subprocess.PIPE,
-                   stderr=subprocess.STDOUT, stdin=subprocess.PIPE)
+    subprocess.run(['babel', filename, '-o', out_filename], check=True)
 
     with open(out_filename) as f:
         text = f.read()
@@ -72,15 +76,14 @@ def qmlify_dir(path, build_dir):
         if os.path.samefile(build_dir, dirname):
             continue
         for filename in files:
-            qmlify(os.path.join(dirname, filename), build_dir)
+            qmlify(os.path.join(dirname, filename), path, build_dir)
 
 
 if __name__ == '__main__':
     build_dir = sys.argv[-1]
-    if not os.path.exists(build_dir):
-        os.makedirs(build_dir)
+
     for filename in sys.argv[1:-1]:
         if os.path.isdir(filename):
             qmlify_dir(filename, build_dir)
         else:
-            qmlify(filename, build_dir)
+            qmlify(filename, os.path.dirname(filename), build_dir)
