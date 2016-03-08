@@ -28,7 +28,7 @@ export function sqlToJS(value, opts) {
         value = null
 
     if (type == 'date') {
-        value = value ? new Date(value) : null
+        value = isValidDate(value) ? new Date(value) : null
     } else if (type == 'number') {
         value = Number(value)
     } else if (type == 'json') {

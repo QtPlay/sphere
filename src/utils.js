@@ -44,5 +44,5 @@ export function compare(a, b, sortBy) {
 }
 
 export function isValidDate(date) {
-    return date && date.toString() != 'Invalid Date'
+    return date && new Date(date).toString() != 'Invalid Date'
 }
