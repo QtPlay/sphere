@@ -45,6 +45,8 @@ export class Document {
 
     constructor(json) {
         this.json = json
+        if (json && json.id)
+            this.id = json.id
     }
 
     save() {
@@ -138,6 +140,11 @@ export class Document {
         }
     }
 
+    static deleteAll() {
+        executeSql(`DELETE FROM ${this.className}`)
+        objectDeleted.emit(this.constructor.className)
+    }
+
     static get className() {
         return this.name
     }
@@ -147,7 +154,6 @@ export class Document {
             return `${key} ${sqlType(this.schema[key])}`
         })
 
-        const sql = `CREATE TABLE IF NOT EXISTS ${this.className} (${args.join(', ')})`
-        executeSql(sql, [])
+        executeSql(`CREATE TABLE IF NOT EXISTS ${this.className} (${args.join(', ')})`)
     }
 }

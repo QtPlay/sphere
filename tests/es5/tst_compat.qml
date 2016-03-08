@@ -7,7 +7,6 @@ TestCase {
     name: "ES5Tests"
 
     function initTestCase() {
-        Sphere.debugMode()
         Sphere.connect("sphere-tests", "Unit tests for sphere")
     }
 

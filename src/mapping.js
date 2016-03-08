@@ -33,7 +33,7 @@ export function sqlToJS(value, opts) {
         value = Number(value)
     } else if (type == 'json') {
         value = JSON.parse(value)
-    } else if (type == 'boolean') {
+    } else if (type == 'boolean' || type == 'bool') {
         value = value ? true : false
     }
 
@@ -51,4 +51,6 @@ export function jsToSQL(value, opts) {
     } else if (typeof(value) == 'object' || type == 'json') {
         value = JSON.stringify(value)
     }
+
+    return value
 }
