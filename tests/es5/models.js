@@ -1,5 +1,7 @@
 .pragma library
-.import "../build/sphere.js" as Sphere
+.import Sphere 0.1 as QML_Sphere
+
+var Sphere = QML_Sphere.Sphere
 
 var SimpleDocument = Sphere.define('SimpleDocument', {
     text: Sphere.stringField(),

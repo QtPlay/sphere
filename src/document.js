@@ -1,6 +1,6 @@
 import {database, documentClasses, executeSql, isDebugging, readTransaction} from './database'
 import {objectChanged, objectDeleted} from './signals'
-import {sqlToJS, sqlType} from './mapping'
+import {sqlToJS, jsToSQL, sqlType} from './mapping'
 
 export function field(type, opts) {
     return function(target, key, descriptor) {

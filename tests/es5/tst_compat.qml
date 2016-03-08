@@ -1,8 +1,7 @@
 import QtQuick 2.3
 import QtTest 1.0
-import "../build/sphere.js" as Sphere
-import "../build/dateutils.js" as DateUtils
-import "es5_models.js" as Models
+import Sphere 0.1
+import "models.js" as Models
 
 TestCase {
     name: "ES5Tests"
@@ -12,14 +11,14 @@ TestCase {
         Sphere.connect("sphere-tests", "Unit tests for sphere")
     }
 
-    function test_open() {
+    function test_connect() {
         // Open was called as part of the init methiod. All we do is verify it worked
         verify(Sphere.database != undefined, "The database should not be undefined")
     }
 
     function test_register() {
         // Register was called as part of the init methiod. All we do is verify it worked
-        compare(Sphere.documentClasses['SimpleDocument'], Models.SimpleDocument,
+        compare(Sphere.getDocumentClass('SimpleDocument'), Models.SimpleDocument,
                 "The test class should have been registered")
     }
 
