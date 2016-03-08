@@ -10,9 +10,11 @@ install: build
 	cp build/* src/qmldir $(INSTALL_DIR)
 
 check: install
-	qmlify tests/es6 tests/es6/build
+	qmlify tests/es6 tests/build/es6
+	rm -rf tests/build/es5
+	cp -r tests/es5 tests/build/es5
 	rm -f ~/Library/Application\ Support/qmltestrunner/QML/OfflineStorage/Databases/*
-	qmltestrunner tests/es5 tests/es6/build
+	qmltestrunner -input tests/build
 
 examples: build
 	qmlify examples/es6 examples/es6/build
