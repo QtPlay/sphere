@@ -29,13 +29,13 @@ ListModel {
         if (!where) {
             filter = ''
         } else if (Array.isArray(where)) {
-            filter = where[0]
+            filter = where.length > 0 ? where[0] : ''
         } else {
             filter = where
         }
 
         if (Array.isArray(where)) {
-            args = where.slice(1)
+            args = where.length > 0 ? where.slice(1) : []
         } else {
             args = []
         }
@@ -123,7 +123,10 @@ ListModel {
         if (query.query)
             filter += ' AND ' + query.filter
 
-        var matchingObject = classObject.findOne(filter, [object.id] + query.args)
+        var args = [object.id]
+        args.concat(query.args)
+
+        var matchingObject = classObject.findOne(filter, args)
 
         if (matchingObject) {
             updateObject(object)

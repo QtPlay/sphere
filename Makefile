@@ -16,11 +16,7 @@ check: install
 	rm -f ~/Library/Application\ Support/qmltestrunner/QML/OfflineStorage/Databases/*
 	qmltestrunner -input tests/build
 
-examples: build
-	qmlify examples/es6 examples/es6/build
-
-run_es6: examples
-	qmlscene examples/es6/build/main.qml
-
-run_es5: examples
-	qmlscene examples/es4/main.qml
+example: install
+	qmlify example example/build
+	rm -f ~/Library/Application\ Support/QtProject/QtQmlViewer/QML/OfflineStorage/Databases/*
+	qmlscene example/build/main.qml

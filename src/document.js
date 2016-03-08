@@ -13,12 +13,6 @@ export function field(type, opts) {
         descriptor.writable = true
         descriptor.enumerable = true
 
-        descriptor.initializer = function() {
-            if (this.json && this.json.hasOwnProperty(key)) {
-                return sqlToJS(this.json[key], opts)
-            }
-        }
-
         return descriptor
     }
 }
@@ -43,10 +37,11 @@ export class Document {
 
     @field('int', {primaryKey: true}) id
 
-    constructor(json) {
-        this.json = json
-        if (json && json.id)
-            this.id = json.id
+    load(json) {
+        for (const key in json) {
+            if (this.constructor.schema.hasOwnProperty(key))
+                this[key] = sqlToJS(json[key], this.constructor.schema[key])
+        }
     }
 
     save() {
@@ -96,7 +91,10 @@ export class Document {
     }
 
     static loadRow(row) {
-        return new this(row)
+        const document = new this()
+        document.load(row)
+
+        return document
     }
 
     static find(query, args) {
