@@ -72,7 +72,7 @@ export class Document {
     }
 
     valueForKey(key) {
-        if (key.indexOf('.') === -1) {
+        if (!key.includes('.')) {
             return this[key]
         } else {
             const keys = key.split('.')

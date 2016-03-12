@@ -44,7 +44,7 @@ ListModel {
             if (className !== model.className)
                 return
 
-            if (objectIds.indexOf(object.id) != -1) {
+            if (objectIds.includes(object.id)) {
                 removeId(object.id)
             }
         })
@@ -66,7 +66,7 @@ ListModel {
         while (i < objectIds.length) {
             var docId = objectIds[i]
 
-            if (newIds.indexOf(docId) == -1) {
+            if (!newIds.includes(docId)) {
                 removeId(docId)
             } else {
                 i++
@@ -140,13 +140,13 @@ ListModel {
 
         if (matchingObject) {
             updateObject(object)
-        } else if (objectIds.indexOf(object.id) != -1) {
+        } else if (!objectIds.includes(object.id)) {
             removeId(object.id)
         }
     }
 
     function updateObject(object) {
-        if (objectIds.indexOf(object.id) == -1) {
+        if (!objectIds.includes(object.id)) {
             data.push(object)
 
             // Add it at the right location
