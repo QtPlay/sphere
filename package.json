@@ -6,15 +6,14 @@
   "directories": {
     "test": "test"
   },
-  "scripts": {
-  },
+  "scripts": {},
   "author": "Michael Spencer",
   "license": "MPL",
   "devDependencies": {
     "babel-eslint": "^5.0.0",
-    "babel-plugin-transform-class-properties": "^6.5.2",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",
     "babel-preset-es2015": "^6.5.0",
+    "babel-preset-stage-0": "^6.5.0",
     "eslint": "^2.3.0",
     "eslint-plugin-class-property": "0.0.2"
   }
