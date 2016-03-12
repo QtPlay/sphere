@@ -2,7 +2,7 @@ import QtQuick 2.0
 import Sphere 0.1
 
 ListModel {
-    id: query
+    id: model
 
     property var where
     property string sortBy: 'id'
@@ -19,44 +19,29 @@ ListModel {
     property string className
     property var classObject: Sphere.getDocumentClass(className)
 
-    property string filter
-    property var args: []
+    property var query
 
     property var data: []
     property var objectIds: []
 
-    onWhereChanged: {
-        if (!where) {
-            filter = ''
-        } else if (Array.isArray(where)) {
-            filter = where.length > 0 ? where[0] : ''
-        } else {
-            filter = where
-        }
-
-        if (Array.isArray(where)) {
-            args = where.length > 0 ? where.slice(1) : []
-        } else {
-            args = []
-        }
-
-        update()
+    onWhereChanged: updateQuery()
+    onClassObjectChanged: {
+        updateQuery()
+        reload()
     }
-
-    onClassObjectChanged: reload()
 
     Component.onCompleted: {
         reload()
 
         Sphere.objectChanged.connect(function(className, object) {
-            if (className !== query.className)
+            if (className !== model.className)
                 return
 
             onObjectChanged(object)
         })
 
         Sphere.objectDeleted.connect(function(className, object) {
-            if (className !== query.className)
+            if (className !== model.className)
                 return
 
             if (objectIds.indexOf(object.id) != -1) {
@@ -66,10 +51,10 @@ ListModel {
     }
 
     function update() {
-        if (!classObject)
+        if (!classObject || !objectIds)
             return
 
-        var objects = classObject.find(query.filter, query.args)
+        var objects = query.all()
         var newIds = listOfIds(objects)
 
         objects.forEach(function (object) {
@@ -89,18 +74,43 @@ ListModel {
         }
     }
 
+    function updateQuery() {
+        if (!classObject)
+            return
+
+        var filter, args
+
+        if (!where) {
+            filter = ''
+        } else if (Array.isArray(where)) {
+            filter = where.length > 0 ? where[0] : ''
+        } else {
+            filter = where
+        }
+
+        if (Array.isArray(where)) {
+            args = where.length > 0 ? where.slice(1) : []
+        } else {
+            args = []
+        }
+
+        query = classObject.where(filter, args)
+
+        update()
+    }
+
     function reload() {
-        query.clear()
+        model.clear()
 
         if (!classObject)
             return
 
-        data = classObject.find(query.filter, query.args)
+        data = query.all()
 
         sort()
 
         data.forEach(function(item) {
-            query.append({
+            model.append({
                 "modelData": item,
                 "section": item[groupBy]
             })
@@ -118,15 +128,15 @@ ListModel {
     }
 
     function onObjectChanged(object) {
-        var filter = 'id = ?'
+        var query
 
-        if (query.query)
-            filter += ' AND ' + query.filter
+        if (model.query) {
+            query = model.query.where({ id: object.id })
+        } else {
+            query = classObject.where({ id: object.id })
+        }
 
-        var args = [object.id]
-        args.concat(query.args)
-
-        var matchingObject = classObject.findOne(filter, args)
+        var matchingObject = query.get()
 
         if (matchingObject) {
             updateObject(object)
@@ -142,23 +152,23 @@ ListModel {
             // Add it at the right location
             if (sortBy == "") {
                 objectIds.push(object.id)
-                query.append({'modelData': object, "section": object.valueForKey(groupBy)})
+                model.append({'modelData': object, "section": object.valueForKey(groupBy)})
             } else {
                 sort()
 
                 var index = objectIds.indexOf(object.id)
-                query.insert(index, {'modelData': object, "section": object.valueForKey(groupBy)})
+                model.insert(index, {'modelData': object, "section": object.valueForKey(groupBy)})
             }
         } else {
             var currentIndex = objectIds.indexOf(object.id)
 
-            query.data[currentIndex] = object
+            model.data[currentIndex] = object
             sort()
 
             var newIndex = objectIds.indexOf(object.id)
 
-            query.move(currentIndex, newIndex, 1)
-            query.set(newIndex, {'modelData': object, "section": object.valueForKey(groupBy)})
+            model.move(currentIndex, newIndex, 1)
+            model.set(newIndex, {'modelData': object, "section": object.valueForKey(groupBy)})
         }
     }
 
@@ -171,7 +181,7 @@ ListModel {
     }
 
     function removeId(id) {
-        query.remove(objectIds.indexOf(id))
+        model.remove(objectIds.indexOf(id))
         objectIds.splice(objectIds.indexOf(id), 1)
         data.splice(data.indexOf(id), 1)
     }

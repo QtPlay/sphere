@@ -131,7 +131,7 @@ TestCase {
         obj1.save()
         obj2.save()
 
-        var matches = Models.TestDocument.find()
+        var matches = Models.TestDocument.where().all()
 
         compare(matches.length, 2, "There should be two matching objects")
         compare(matches[0].text, obj1.text, "The first object should be returned first")

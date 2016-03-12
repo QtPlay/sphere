@@ -1,6 +1,7 @@
-import {database, documentClasses, executeSql, isDebugging, readTransaction} from './database'
+import {database, documentClasses, executeSql, isDebugging} from './database'
 import {objectChanged, objectDeleted} from './signals'
 import {sqlToJS, jsToSQL, sqlType} from './mapping'
+import {QuerySet} from './query'
 
 export function field(type, opts) {
     return function(target, key, descriptor) {
@@ -97,71 +98,24 @@ export class Document {
         return document
     }
 
-    static count(query, args) {
-        let count = 0
-
-        if (!args)
-            args = []
-
-        readTransaction((tx) => {
-            let sql = `SELECT COUNT(*) as count FROM ${this.className}`
-
-            if (query)
-                sql = `${sql} WHERE ${query}`
-
-            if (isDebugging())
-                console.log(`Executing SQL ${sql} ${JSON.stringify(args)}`)
-
-            count = tx.executeSql(sql, args).rows.item(0)['count']
-        })
-
-        return count
-    }
-
-    static find(query, args) {
-        const results = []
-
-        if (!args)
-            args = []
-
-        readTransaction((tx) => {
-            let sql = `SELECT * FROM ${this.className}`
-
-            if (query)
-                sql = `${sql} WHERE ${query}`
-
-            if (isDebugging())
-                console.log(`Executing SQL ${sql} ${JSON.stringify(args)}`)
-
-            const rows = tx.executeSql(sql, args).rows
-
-            for(let i = 0; i < rows.length; i++) {
-                results.push(this.loadRow(rows.item(i)))
-            }
-        })
-
-        return results
+    static where(query, args) {
+        return new QuerySet(this, query, args)
     }
 
     static get(id) {
-        return this.findOne('id = ?', [id])
+        return this.where('id = ?', [id]).get()
     }
 
-    static findOne(query, args) {
-        const results = this.find(query, args)
+    static all() {
+        return this.where().all()
+    }
 
-        if (results.length == 1) {
-            return results[0]
-        } else if (results.length == 0) {
-            return null
-        } else {
-            throw new Error(`More than one object matches query: ${query}`)
-        }
+    static first() {
+        return this.where().first()
     }
 
     static deleteAll() {
-        executeSql(`DELETE FROM ${this.className}`)
-        objectDeleted.emit(this.constructor.className)
+        return this.where().delete()
     }
 
     static get className() {
