@@ -1,0 +1,4 @@
+dependencies:
+    localstorage: 2.0
+exports:
+    sphere: Sphere/Sphere 0.1

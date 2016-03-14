@@ -7,7 +7,7 @@ build:
 
 install: build
 	mkdir -p $(INSTALL_DIR)
-	cp build/* src/qmldir $(INSTALL_DIR)
+	cp build/* package.yml $(INSTALL_DIR)
 
 check: install
 	qmlify tests/es6 tests/build/es6

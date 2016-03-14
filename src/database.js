@@ -1,4 +1,4 @@
-import {LocalStorage} from 'QtQuick.LocalStorage 2.0'
+import {openDatabaseSync} from 'localstorage'
 
 let debug = false
 let database = null
@@ -17,7 +17,7 @@ export function connect(name, description) {
     if (debug)
         console.log(`Connecting to ${name} (${description})`)
 
-    database = LocalStorage.openDatabaseSync(name, '', description, 100000)
+    database = openDatabaseSync(name, '', description, 100000)
     for (const className in documentClasses) {
         const classObj = documentClasses[className]
         classObj.createTable()

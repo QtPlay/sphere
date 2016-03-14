@@ -1,4 +1,4 @@
-import {field, register, Document} from 'Sphere 0.1/Sphere'
+import {field, register, Document} from 'sphere'
 
 export class TestDocument extends Document {
     @field('string') text
