@@ -23,7 +23,7 @@ export function register(...classes) {
         documentClasses[classObj.className] = classObj
         if (isDebugging)
             console.log(`Registering ${classObj.className}`)
-        if (database)
+        if (database())
             classObj.createTable()
     })
 }

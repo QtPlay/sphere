@@ -1,9 +1,14 @@
 import {openDatabaseSync} from 'localstorage'
 
 let debug = false
-let database = null
+let db = null
 let current_tx = null
-const documentClasses = {}
+
+export const documentClasses = {}
+
+export function database() {
+    return db
+}
 
 export function debugMode() {
     debug = true
@@ -17,7 +22,7 @@ export function connect(name, description) {
     if (debug)
         console.log(`Connecting to ${name} (${description})`)
 
-    database = openDatabaseSync(name, '', description, 100000)
+    db = openDatabaseSync(name, '', description, 100000)
     for (const className in documentClasses) {
         const classObj = documentClasses[className]
         classObj.createTable()
@@ -25,10 +30,10 @@ export function connect(name, description) {
 }
 
 export function migrate(version, callback) {
-    if (database.version !== version) {
+    if (db.version !== version) {
         if (debug)
-            console.log(`Migrating from '${database.version}' to '${version}'`)
-        database.changeVersion(database.version, version, (tx) => {
+            console.log(`Migrating from '${db.version}' to '${version}'`)
+        db.changeVersion(db.version, version, (tx) => {
             withTransaction(tx, callback)
         })
     }
@@ -49,7 +54,7 @@ export function executeSql(sql, args) {
         return current_tx.executeSql(sql, args)
     } else {
         let result = null
-        database.transaction((tx) => {
+        db.transaction((tx) => {
             result = tx.executeSql(sql, args)
         })
         return result
@@ -57,13 +62,13 @@ export function executeSql(sql, args) {
 }
 
 export function transaction(callback) {
-    database.transaction((tx) => {
+    db.transaction((tx) => {
         withTransaction(tx, callback)
     })
 }
 
 export function readTransaction(callback) {
-    database.readTransaction((tx) => {
+    db.readTransaction((tx) => {
         withTransaction(tx, callback)
     })
 }
