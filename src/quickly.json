@@ -1,0 +1,8 @@
+{
+  "exports": {
+    "sphere": "Sphere/Sphere"
+  },
+  "dependencies": {
+    "localstorage": "2.0"
+  }
+}

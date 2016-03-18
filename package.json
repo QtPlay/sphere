@@ -1,12 +1,9 @@
 {
+  "private": true,
   "name": "sphere",
-  "version": "1.0.0",
+  "version": "0.0.1",
   "description": "A ORM for SQLite and QML",
   "main": "src/sphere.js",
-  "directories": {
-    "test": "test"
-  },
-  "scripts": {},
   "author": "Michael Spencer",
   "license": "MPL",
   "devDependencies": {
