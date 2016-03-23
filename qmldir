@@ -1,0 +1,5 @@
+module Sphere
+
+Sphere 0.1 index.js
+Query 0.1 Query.qml
+QueryCount 0.1 QueryCount.qml

@@ -1,0 +1,23 @@
+{
+  "name": "com.sonrisesoftware.sphere",
+  "description": "",
+  "author": {
+    "name": "Michael Spencer",
+    "email": "sonrisesoftware@gmail.com"
+  },
+  "repository": {
+    "type": "GITHUB",
+    "url": "git@github.com:iBeliever/sphere.git"
+  },
+  "version": {
+    "label": "0.0.1",
+    "revision": "",
+    "fingerprint": ""
+  },
+  "dependencies": [
+    "com.sonrisesoftware.quickly@0.0.3"
+  ],
+  "license": "MPL_2_0",
+  "pri_filename": "sphere.pri",
+  "webpage": ""
+}
