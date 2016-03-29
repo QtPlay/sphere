@@ -15,7 +15,7 @@
     "fingerprint": ""
   },
   "dependencies": [
-    "com.sonrisesoftware.quickly@0.0.3"
+    "com.sonrisesoftware.quickly@0.0.5"
   ],
   "license": "MPL_2_0",
   "pri_filename": "sphere.pri",

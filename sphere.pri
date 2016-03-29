@@ -1,3 +1,1 @@
-
-RESOURCES += \
-    $$PWD/sphere.qrc
+QMLIFY += src
