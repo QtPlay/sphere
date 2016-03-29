@@ -1,1 +1,3 @@
-QMLIFY += src
+QT += qml
+
+RESOURCES += $$PWD/resources.qrc
