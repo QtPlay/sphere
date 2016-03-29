@@ -6,6 +6,9 @@
   "main": "src/sphere.js",
   "author": "Michael Spencer",
   "license": "MPL",
+  "scripts": {
+    "test": "qmlify -d test/build/es6 test/es6 && cp -r test/es5 test/build/es5 && qmltestrunner -input test/build"
+  },
   "devDependencies": {
     "babel-eslint": "^5.0.0",
     "babel-plugin-transform-decorators-legacy": "^1.3.4",

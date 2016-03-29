@@ -2,4 +2,4 @@ module Sphere
 
 Query 0.1 Query.qml
 QueryCount 0.1 QueryCount.qml
-Sphere 0.1 sphere.js
+Sphere 0.1 index.js

@@ -1,3 +1,7 @@
+include(qmlify.pri)
+
+TEMPLATE = lib
+
 QMLIFY += src
 
 target.path = $$[QT_INSTALL_QML]/Sphere
