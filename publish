@@ -1,0 +1,8 @@
+#! /bin/bash
+
+QPM_DIR=../sphere-qpm
+
+npm run build
+
+rm -r $QPM_DIR/*
+cp -r README.md LICENSE qpm.json sphere.pri build/src-qmlified/* $QPM_DIR
