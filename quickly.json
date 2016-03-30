@@ -1,0 +1,39 @@
+{
+  "name": "Sphere",
+  "resources": {
+    "Sphere": {
+      "latestVersion": "0.1",
+      "globals": [
+        "setTimeout",
+        "Symbol",
+        "WeakMap",
+        "Map",
+        "Set",
+        "WeakSet",
+        "Reflect",
+        "Headers",
+        "Request",
+        "Response",
+        "fetch",
+        "Promise"
+      ]
+    }
+  },
+  "globals": {
+    "setTimeout": "Sphere",
+    "Symbol": "Sphere",
+    "WeakMap": "Sphere",
+    "Map": "Sphere",
+    "Set": "Sphere",
+    "WeakSet": "Sphere",
+    "Reflect": "Sphere",
+    "Headers": "Sphere",
+    "Request": "Sphere",
+    "Response": "Sphere",
+    "fetch": "Sphere",
+    "Promise": "Sphere"
+  },
+  "exports": {
+    "sphere": "Sphere/Sphere"
+  }
+}

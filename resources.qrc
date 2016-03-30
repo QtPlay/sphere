@@ -1,0 +1,17 @@
+<!DOCTYPE RCC>
+<RCC version="1.0">
+
+<qresource prefix="/Sphere">
+	<file>Query.qml</file>
+	<file>QueryCount.qml</file>
+	<file>compat.js</file>
+	<file>database.js</file>
+	<file>document.js</file>
+	<file>index.js</file>
+	<file>mapping.js</file>
+	<file>query.js</file>
+	<file>signals.js</file>
+	<file>utils.js</file>
+</qresource>
+
+</RCC>
