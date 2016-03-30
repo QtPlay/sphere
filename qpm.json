@@ -1,6 +1,6 @@
 {
-  "name": "io.quicklydev.sphere",
-  "description": "",
+  "name": "com.sonrisesoftware.sphere",
+  "description": "A simple and easy-to-use SQLite ORM for QML",
   "author": {
     "name": "Michael Spencer",
     "email": "sonrisesoftware@gmail.com"
